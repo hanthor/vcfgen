@@ -39,6 +39,16 @@ function decryptContact(encryptedText: string, password: string): ContactInfo | 
     }
 }
 
+// Escape a vCard property value per RFC 6350 section 3.4, so that values taken
+// from URL parameters cannot break the line structure or inject extra properties.
+function escapeVCardValue(value: string): string {
+    return value
+        .replace(/\\/g, '\\\\')
+        .replace(/,/g, '\\,')
+        .replace(/;/g, '\\;')
+        .replace(/\r\n|\r|\n/g, '\\n');
+}
+
 // Function to generate VCF
 function generateVCF(contact: ContactInfo) {
     const { firstName, email, phone, organization, title } = contact;
@@ -50,19 +60,20 @@ function generateVCF(contact: ContactInfo) {
 
     let vcard = `BEGIN:VCARD\nVERSION:3.0\n`;
     if (firstName) {
-        vcard += `FN:${firstName}\nN:${firstName};;;\n`;
+        const name = escapeVCardValue(firstName);
+        vcard += `FN:${name}\nN:${name};;;\n`;
     }
     if (email) {
-        vcard += `EMAIL:${email}\n`;
+        vcard += `EMAIL:${escapeVCardValue(email)}\n`;
     }
     if (phone) {
-        vcard += `TEL:${phone}\n`;
+        vcard += `TEL:${escapeVCardValue(phone)}\n`;
     }
     if (organization) {
-        vcard += `ORG:${organization}\n`;
+        vcard += `ORG:${escapeVCardValue(organization)}\n`;
     }
     if (title) {
-        vcard += `TITLE:${title}\n`;
+        vcard += `TITLE:${escapeVCardValue(title)}\n`;
     }
     vcard += `END:VCARD\n`;
 
